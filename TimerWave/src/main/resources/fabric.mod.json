@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "timerwave",
+  "version": "${version}",
+  "name": "TimerWave",
+  "description": "Server-side timer and countdown with wave colors, death pause, and world-persistent progress.",
+  "authors": [
+    "TimerWave Team"
+  ],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/timerwave",
+    "issues": "https://github.com/replace-with-your-repo/issues",
+    "sources": "https://github.com/replace-with-your-repo"
+  },
+  "license": "MIT",
+  "icon": "assets/timerwave/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.timerwave.TimerWaveMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.10",
+    "fabric-api": "*",
+    "minecraft": "~1.21.11",
+    "java": ">=21"
+  }
+}

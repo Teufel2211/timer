@@ -1,0 +1,25 @@
+{
+  "title": "TimerWave",
+  "summary": "Server-side timer and countdown with smooth wave colors, death pause, and world-persistent progress.",
+  "description_markdown_file": "release/metadata/description.md",
+  "categories": [
+    "utility",
+    "game-mechanics",
+    "optimization"
+  ],
+  "featured_categories": [
+    "utility",
+    "game-mechanics",
+    "optimization"
+  ],
+  "client_side": "optional",
+  "server_side": "required",
+  "license": "MIT",
+  "loaders": [
+    "fabric"
+  ],
+  "game_versions": [
+    "1.21.11"
+  ],
+  "icon_file": "release/assets/timerwave-logo-512.png"
+}

@@ -1,0 +1,111 @@
+plugins {
+    id 'fabric-loom' version "${loom_version}"
+    id 'maven-publish'
+    id 'com.modrinth.minotaur' version '2.8.7'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    maven { url = 'https://maven.fabricmc.net/' }
+    mavenCentral()
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+
+processResources {
+    inputs.property "version", project.version
+    filteringCharset "UTF-8"
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = 21
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.archives_base_name}" }
+    }
+}
+
+publishing {
+    publications {
+        create("mavenJava", MavenPublication) {
+            artifactId = project.archives_base_name
+            from components.java
+        }
+    }
+}
+
+modrinth {
+    token = System.getenv("MODRINTH_TOKEN")
+    projectId = project.findProperty("modrinth_project_id")?.toString() ?: ""
+    versionNumber = project.version.toString()
+    versionName = "TimerWave ${project.version}"
+    versionType = project.findProperty("modrinth_version_type")?.toString() ?: "release"
+    uploadFile = tasks.remapJar
+    gameVersions = [project.minecraft_version.toString()]
+    loaders = ["fabric"]
+    changelog = file(project.findProperty("modrinth_changelog_file")?.toString() ?: "CHANGELOG.md").exists()
+            ? file(project.findProperty("modrinth_changelog_file")?.toString() ?: "CHANGELOG.md").getText("UTF-8")
+            : "TimerWave release ${project.version}"
+
+    dependencies {
+        required.project "fabric-api"
+    }
+}
+
+tasks.named("modrinth").configure {
+    dependsOn tasks.remapJar
+    onlyIf {
+        def projectId = project.findProperty("modrinth_project_id")?.toString() ?: ""
+        System.getenv("MODRINTH_TOKEN") != null && !projectId.isBlank()
+    }
+}
+
+tasks.register("prepareReleaseBundle", Copy) {
+    dependsOn tasks.remapJar, tasks.sourcesJar, tasks.remapSourcesJar
+    def outputDir = layout.buildDirectory.dir("release-bundle")
+    into(outputDir)
+    doFirst {
+        delete(outputDir)
+    }
+    from("build/libs") {
+        include("${project.archives_base_name}-${project.version}.jar")
+        include("${project.archives_base_name}-${project.version}-sources.jar")
+    }
+    from("CHANGELOG.md")
+    from("README.md")
+}
+
+tasks.register("useVersionedChangelog") {
+    doLast {
+        def versionFile = file("release/changelogs/${project.version}.md")
+        if (!versionFile.exists()) {
+            throw new GradleException("Missing versioned changelog: ${versionFile}")
+        }
+        file("CHANGELOG.md").text = versionFile.getText("UTF-8")
+        println "CHANGELOG.md updated from ${versionFile}"
+    }
+}
