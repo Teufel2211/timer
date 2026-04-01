@@ -1,0 +1,33 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# Fabric run/runtime
+run/
+logs/
+crash-reports/
+eula.txt
+server.properties
+server-start-check.log
+
+# IDE
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+.vscode/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+
+# Local env / secrets
+.env
+.env.*
+
+# Release outputs
+build/release-bundle/
