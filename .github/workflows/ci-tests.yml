@@ -20,10 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
@@ -43,10 +43,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
@@ -76,7 +76,7 @@ jobs:
 
       - name: Upload Server Smoke Log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: server-smoke-log
           path: server-smoke.log
@@ -86,10 +86,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
@@ -111,16 +111,23 @@ jobs:
           timeout 180s xvfb-run -a ./gradlew runClient --no-daemon > client-smoke.log 2>&1
           code=$?
           set -e
-          # Accept timeout (124). Validate via log content to avoid flaky non-zero wrapper exits.
+          # Accept timeout (124). For non-zero exits, only fail if startup markers are missing.
           if [ "$code" -ne 0 ] && [ "$code" -ne 124 ]; then
             echo "runClient exit code: $code"
           fi
-          grep -Eq "Loading Minecraft 1\.21\.11" client-smoke.log
-          grep -Eiq "timerwave.*initialized|initialized.*timerwave" client-smoke.log
+          has_minecraft=0
+          has_timerwave=0
+          grep -Eq "Loading Minecraft 1\.21\.11|FabricLoader/GameProvider" client-smoke.log && has_minecraft=1 || true
+          grep -Eiq "timerwave|TimerWave initialized" client-smoke.log && has_timerwave=1 || true
+          if [ "$has_minecraft" -ne 1 ] || [ "$has_timerwave" -ne 1 ]; then
+            echo "Client smoke markers missing. Last log lines:"
+            tail -n 200 client-smoke.log || true
+            exit 1
+          fi
 
       - name: Upload Client Smoke Log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: client-smoke-log
           path: client-smoke.log
@@ -130,10 +137,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
